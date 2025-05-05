@@ -10,8 +10,9 @@ use crate::tool::generate_dotfile_bst;
 
 fn main() {
     //turn on to test the old code
-    // test_binary_tree();
-    test_binary_search_tree();
+    //test_binary_tree();
+    //test_binary_search_tree();
+    test_bst();
 }
 
 fn test_binary_search_tree(){
@@ -204,4 +205,72 @@ fn test_binary_tree() {
     //print the tree again
     main_tree_path = "prime_t4.dot";
     generate_dotfile(&rootlink, main_tree_path);
+}
+
+fn test_bst() {
+    let rootlink: BstNodeLink = BstNode::new_bst_nodelink(15);
+    rootlink.borrow_mut().add_left_child(&rootlink, 6);
+    rootlink.borrow_mut().add_right_child(&rootlink, 18);
+
+    // Tambah subtree kanan
+    let right_subtree: &Option<BstNodeLink> = &rootlink.borrow().right;
+    if let Some(right_tree_extract) = right_subtree {
+        right_tree_extract
+            .borrow_mut()
+            .add_left_child(right_tree_extract, 17);
+        right_tree_extract
+            .borrow_mut()
+            .add_right_child(right_tree_extract, 20);
+    }
+
+    // Tambah subtree kiri
+    let left_subtree: &Option<BstNodeLink> = &rootlink.borrow().left;
+    if let Some(left_tree_extract) = left_subtree {
+        left_tree_extract
+            .borrow_mut()
+            .add_left_child(left_tree_extract, 3);
+        left_tree_extract
+            .borrow_mut()
+            .add_right_child(left_tree_extract, 7);
+
+        // Tambah subtree kiri terminal
+        let left_subtree_terminal = &left_tree_extract.borrow().left;
+        if let Some(terminal_left_tree_link) = left_subtree_terminal {
+            terminal_left_tree_link.borrow_mut().add_left_child(terminal_left_tree_link, 2);
+            terminal_left_tree_link.borrow_mut().add_right_child(terminal_left_tree_link, 4);
+        }
+        // Tambah subtree kanan level 2 dari node 7
+        let second_right_subtree = &left_tree_extract.borrow().right;
+        if let Some(second_right_subtree_link) = second_right_subtree {
+            second_right_subtree_link.borrow_mut().add_right_child(second_right_subtree_link, 13);
+
+            let third_left_subtree = &second_right_subtree_link.borrow().right;
+            if let Some(third_left_subtree_link) = third_left_subtree {
+                third_left_subtree_link.borrow_mut().add_left_child(third_left_subtree_link, 9);
+            }
+        }
+    }
+
+    // Cetak tree awal
+    let main_tree_path = "bst_awal.dot";
+    generate_dotfile_bst(&rootlink, main_tree_path);
+
+    // Test tree_insert
+    let insert_node = BstNode::new_bst_nodelink(10);
+    BstNode::tree_insert(&rootlink, insert_node.clone());
+    println!("Tree setelah insert 10 printed");
+    generate_dotfile_bst(&rootlink, "bst_insert_10.dot");
+
+    // Test transplant. Transplant node dengan key 17 dengan node dengan key 20.
+    let node_17 = rootlink.borrow().tree_search(&17).unwrap();
+    let node_20 = rootlink.borrow().tree_search(&20).unwrap();
+    BstNode::transplant(&rootlink, &node_17, &Some(node_20.clone()));
+    println!("Tree setelah transplant 17 dengan 20 printed");
+    generate_dotfile_bst(&rootlink, "bst_transplant_17_20.dot");
+
+    // Test tree_delete.  Delete node dengan key 13.
+    let node_to_delete = rootlink.borrow().tree_search(&13).unwrap();
+    BstNode::tree_delete(&rootlink, &node_to_delete);
+    println!("Tree setelah delete 13 printed");
+    generate_dotfile_bst(&rootlink, "bst_delete_13.dot");
 }
